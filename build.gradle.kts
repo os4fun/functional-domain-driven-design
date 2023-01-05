@@ -67,13 +67,39 @@ dependencyManagement {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
         jvmTarget = "17"
+        freeCompilerArgs = listOf("-Xjsr305=strict", "-Xinline-classes")
     }
 }
 
-tasks.withType<Test> {
-    maxParallelForks = 1
-    enableAssertions = true
-    useJUnitPlatform()
+tasks.apply {
+    test {
+        enableAssertions = true
+        useJUnitPlatform {}
+    }
+
+    task<Test>("unitTest") {
+        description = "Runs unit tests."
+        useJUnitPlatform {
+            excludeTags("integration")
+            excludeTags("component")
+        }
+        shouldRunAfter(test)
+    }
+
+    task<Test>("integrationTest") {
+        description = "Runs integration tests."
+        useJUnitPlatform {
+            includeTags("integration")
+        }
+        shouldRunAfter(test)
+    }
+
+    task<Test>("componentTest") {
+        description = "Runs component tests."
+        useJUnitPlatform {
+            includeTags("component")
+        }
+        shouldRunAfter(test)
+    }
 }
